@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/ridem/comply/internal/config"
-	"github.com/ridem/comply/internal/model"
+	"github.com/strongdm/comply/internal/config"
+	"github.com/strongdm/comply/internal/model"
 	"github.com/urfave/cli"
 )
 

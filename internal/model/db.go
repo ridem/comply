@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/nanobox-io/golang-scribble"
-	"github.com/ridem/comply/internal/config"
+	"github.com/strongdm/comply/internal/config"
 )
 
 var dbSingletonOnce sync.Once

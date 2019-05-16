@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/ridem/comply/internal/model"
+	"github.com/strongdm/comply/internal/model"
 
 	jira "github.com/andygrunwald/go-jira"
 )

@@ -1,6 +1,6 @@
 package main
 
-import "github.com/ridem/comply/internal/cli"
+import "github.com/strongdm/comply/internal/cli"
 
 func main() {
 	cli.Main()
