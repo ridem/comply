@@ -127,6 +127,7 @@ func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error
 
 	gitApprovalInfo, err := getGitApprovalInfo(pol)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
