@@ -179,10 +179,10 @@ func loadMDMD(path string) metadataMarkdown {
 
 	content := string(bytes)
 	components := strings.Split(content, "---")
-	if len(components) == 1 {
+	if len(components) < 3 {
 		panic(fmt.Sprintf("Malformed metadata markdown in %s, must be of the form: YAML\\n---\\nmarkdown content", path))
 	}
-	yaml := components[0]
-	body := strings.Join(components[1:], "---")
+	yaml := components[1]
+	body := strings.Join(components[2:], "---")
 	return metadataMarkdown{yaml, body}
 }
