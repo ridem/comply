@@ -1,3 +1,4 @@
+---
 name: Processing Integrity Policy
 acronym: PIP
 satisfies:

@@ -1,3 +1,4 @@
+---
 name: Vendor Management Policy
 acronym: VMP
 satisfies:

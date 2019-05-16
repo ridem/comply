@@ -1,3 +1,4 @@
+---
 name: Confidentiality Policy
 acronym: CP
 satisfies:

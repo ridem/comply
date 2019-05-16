@@ -21,10 +21,10 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
-	"github.com/strongdm/comply/internal/config"
-	"github.com/strongdm/comply/internal/gitlab"
-	"github.com/strongdm/comply/internal/jira"
-	"github.com/strongdm/comply/internal/plugin/github"
+	"github.com/ridem/comply/internal/config"
+	"github.com/ridem/comply/internal/gitlab"
+	"github.com/ridem/comply/internal/jira"
+	"github.com/ridem/comply/internal/plugin/github"
 	"github.com/urfave/cli"
 )
 

@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
-	"github.com/strongdm/comply/internal/model"
+	"github.com/ridem/comply/internal/model"
 	"golang.org/x/oauth2"
 )
 
