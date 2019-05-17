@@ -90,7 +90,7 @@ func getGitApprovalInfo(pol *model.Document) (string, error) {
 		return "", errors.Wrap(err, "error looking up git committer and author data")
 	}
 
-	return gitApprovalInfo, nil
+	return string(gitApprovalInfo), nil
 }
 
 func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error {
@@ -160,7 +160,7 @@ foot-content: "%s confidential %d"
 		time.Now().Year(),
 		satisfiesTable,
 		revisionTable,
-		body
+		body,
 	)
 	err = ioutil.WriteFile(fullPath, []byte(doc), os.FileMode(0644))
 	if err != nil {
