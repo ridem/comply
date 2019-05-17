@@ -151,8 +151,6 @@ foot-content: "%s confidential %d"
 %s
 
 \newpage
-%s
-
 %s`,
 		pol.Name,
 		cfg.Name,
@@ -162,8 +160,7 @@ foot-content: "%s confidential %d"
 		time.Now().Year(),
 		satisfiesTable,
 		revisionTable,
-		body,
-		gitApprovalInfo,
+		body
 	)
 	err = ioutil.WriteFile(fullPath, []byte(doc), os.FileMode(0644))
 	if err != nil {
