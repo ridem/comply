@@ -83,14 +83,14 @@ func getGitApprovalInfo(pol *model.Document) (string, error) {
 	}
 
 	// Grab information related to commit, so that we can put approval information in the document
-	gitArgs := []string{"log", "-n", "1", "--date=format:'%b %d %Y'", "--pretty=format:%ad", "--", pol.FullPath}
+	gitArgs := []string{"log", "-n", "1", "--date=format:%b %d %Y", "--pretty=format:%ad", "--", pol.FullPath}
 	cmd := exec.Command("git", gitArgs...)
 	gitApprovalInfo, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", errors.Wrap(err, "error looking up git committer and author data")
 	}
 
-	return fmt.Sprintf("%s", gitApprovalInfo), nil
+	return string(gitApprovalInfo), nil
 }
 
 func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error {
@@ -132,7 +132,7 @@ func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error
 		for _, rev := range pol.Revisions {
 			rows += fmt.Sprintf("| %s | %s |\n", rev.Date, rev.Comment)
 		}
-		rows += fmt.Sprintf("| %s | Last minor edit |\n", gitApprovalInfo)
+		rows += fmt.Sprintf("| %s | Last minor modification |\n", gitApprovalInfo)
 		revisionTable = fmt.Sprintf("|Date|Comment|\n|---+--------------------------------------------|\n%s\nTable: Document history\n", rows)
 	}
 
