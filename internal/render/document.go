@@ -90,7 +90,7 @@ func getGitApprovalInfo(pol *model.Document) (string, error) {
 		return "", errors.Wrap(err, "error looking up git committer and author data")
 	}
 
-	return string(gitApprovalInfo), nil
+	return fmt.Sprintf("%s", gitApprovalInfo), nil
 }
 
 func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error {
