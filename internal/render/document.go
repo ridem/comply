@@ -58,8 +58,6 @@ func renderToFilesystem(wg *sync.WaitGroup, errOutputCh chan error, data *render
 func getGitApprovalInfo(pol *model.Document) (string, error) {
 	cfg := config.Config()
 
-	fmt.Println("Approved branch")
-	fmt.Println(cfg.ApprovedBranch)
 	// if no approved branch specified in config.yaml, then nothing gets added to the document
 	if cfg.ApprovedBranch == "" {
 		return "", nil
@@ -74,6 +72,8 @@ func getGitApprovalInfo(pol *model.Document) (string, error) {
 		return "", errors.Wrap(err, "error looking up git branch")
 	}
 
+	fmt.Println(strings.TrimSpace(fmt.Sprintf("%s", gitBranchInfo)))
+
 	// if on a different branch than the approved branch, then nothing gets added to the document
 	if strings.Compare(strings.TrimSpace(fmt.Sprintf("%s", gitBranchInfo)), cfg.ApprovedBranch) != 0 {
 		return "", nil
@@ -84,10 +84,11 @@ func getGitApprovalInfo(pol *model.Document) (string, error) {
 	cmd := exec.Command("git", gitArgs...)
 	gitApprovalInfo, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println(string(gitApprovalInfo))
+		fmt.Println(err)
 		return "", errors.Wrap(err, "error looking up git committer and author data")
 	}
 
+	fmt.Println(gitApprovalInfo)
 	return fmt.Sprintf("%s\n%s", "# Authorship and Approval", gitApprovalInfo), nil
 }
 
@@ -129,6 +130,7 @@ func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error
 
 	gitApprovalInfo, err := getGitApprovalInfo(pol)
 	if err != nil {
+		fmt.Println("ERROR WITH GIT")
 		fmt.Println(err)
 		return err
 	}
