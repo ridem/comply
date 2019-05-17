@@ -83,14 +83,14 @@ func getGitApprovalInfo(pol *model.Document) (string, error) {
 	}
 
 	// Grab information related to commit, so that we can put approval information in the document
-	gitArgs := []string{"log", "-n", "1", "--pretty=format:Last edit made by %an (%ai).", "--", pol.FullPath}
+	gitArgs := []string{"log", "-n", "1", "--date=format:'%b %d %Y'", "--pretty=format:%ad", "--", pol.FullPath}
 	cmd := exec.Command("git", gitArgs...)
 	gitApprovalInfo, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", errors.Wrap(err, "error looking up git committer and author data")
 	}
 
-	return fmt.Sprintf("%s\n%s", "# Authorship and Approval", gitApprovalInfo), nil
+	return gitApprovalInfo, nil
 }
 
 func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error {
@@ -121,18 +121,19 @@ func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error
 		satisfiesTable = fmt.Sprintf("|Standard|Controls Satisfied|\n|-------+--------------------------------------------|\n%s\nTable: Control satisfaction\n", rows)
 	}
 
+	gitApprovalInfo, err := getGitApprovalInfo(pol)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
 	if len(pol.Revisions) > 0 {
 		rows := ""
 		for _, rev := range pol.Revisions {
 			rows += fmt.Sprintf("| %s | %s |\n", rev.Date, rev.Comment)
 		}
+		rows += fmt.Sprintf("| %s | Last minor edit |\n", gitApprovalInfo)
 		revisionTable = fmt.Sprintf("|Date|Comment|\n|---+--------------------------------------------|\n%s\nTable: Document history\n", rows)
-	}
-
-	gitApprovalInfo, err := getGitApprovalInfo(pol)
-	if err != nil {
-		fmt.Println(err)
-		return err
 	}
 
 	doc := fmt.Sprintf(`%% %s
