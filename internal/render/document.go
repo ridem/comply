@@ -67,12 +67,18 @@ func getGitApprovalInfo(pol *model.Document) (string, error) {
 	gitBranchArgs := []string{"symbolic-ref", "--short", "HEAD"}
 	gitBranchCmd := exec.Command("git", gitBranchArgs...)
 	gitBranchInfo, err := gitBranchCmd.CombinedOutput()
+
+	var testBranch string
 	if err != nil {
-		return "", errors.Wrap(err, "error looking up git branch")
+		// return "", errors.Wrap(err, "error looking up git branch")
+		// It is gonna break if we're in a "detached HEAD" mode
+		testBranch = cfg.ApprovedBranch
+	} else {
+		testBranch = strings.TrimSpace(fmt.Sprintf("%s", gitBranchInfo))
 	}
 
 	// if on a different branch than the approved branch, then nothing gets added to the document
-	if strings.Compare(strings.TrimSpace(fmt.Sprintf("%s", gitBranchInfo)), cfg.ApprovedBranch) != 0 {
+	if strings.Compare(testBranch, cfg.ApprovedBranch) != 0 {
 		return "", nil
 	}
 
