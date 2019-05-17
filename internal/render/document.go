@@ -83,7 +83,7 @@ func getGitApprovalInfo(pol *model.Document) (string, error) {
 	}
 
 	// Grab information related to commit, so that we can put approval information in the document
-	gitArgs := []string{"log", "-n", "1", "--pretty=format:Last edit made by %an on %aD.\n\nApproved by %cn on %cD in commit %H.", "--", pol.FullPath}
+	gitArgs := []string{"log", "-n", "1", "--pretty=format:Last edit made by %an (%ai).", "--", pol.FullPath}
 	cmd := exec.Command("git", gitArgs...)
 	gitApprovalInfo, err := cmd.CombinedOutput()
 	if err != nil {
