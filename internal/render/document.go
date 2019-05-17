@@ -64,15 +64,12 @@ func getGitApprovalInfo(pol *model.Document) (string, error) {
 	}
 
 	// Decide whether we are on the git branch that contains the approved policies
-	gitBranchArgs := []string{"rev-parse", "--abbrev-ref", "HEAD"}
+	gitBranchArgs := []string{"symbolic-ref", "--short", "HEAD"}
 	gitBranchCmd := exec.Command("git", gitBranchArgs...)
 	gitBranchInfo, err := gitBranchCmd.CombinedOutput()
 	if err != nil {
-		fmt.Println(string(gitBranchInfo))
 		return "", errors.Wrap(err, "error looking up git branch")
 	}
-
-	fmt.Println(strings.TrimSpace(fmt.Sprintf("%s", gitBranchInfo)))
 
 	// if on a different branch than the approved branch, then nothing gets added to the document
 	if strings.Compare(strings.TrimSpace(fmt.Sprintf("%s", gitBranchInfo)), cfg.ApprovedBranch) != 0 {
@@ -84,11 +81,9 @@ func getGitApprovalInfo(pol *model.Document) (string, error) {
 	cmd := exec.Command("git", gitArgs...)
 	gitApprovalInfo, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println(err)
 		return "", errors.Wrap(err, "error looking up git committer and author data")
 	}
 
-	fmt.Println(gitApprovalInfo)
 	return fmt.Sprintf("%s\n%s", "# Authorship and Approval", gitApprovalInfo), nil
 }
 
@@ -130,7 +125,6 @@ func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error
 
 	gitApprovalInfo, err := getGitApprovalInfo(pol)
 	if err != nil {
-		fmt.Println("ERROR WITH GIT")
 		fmt.Println(err)
 		return err
 	}
