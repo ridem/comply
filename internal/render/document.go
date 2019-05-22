@@ -37,16 +37,10 @@ func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, data *rende
 
 		outputFilename := p.OutputFilename
 
-		rel, err := filepath.Rel(config.ProjectRoot(), p.FullPath)
-		if err != nil {
-			rel = p.FullPath
-		}
-		fmt.Printf("%s -> %s\n", rel, filepath.Join("output", outputFilename))
-
 		markdownPath := filepath.Join(".", "output", outputFilename+".md")
 
 		// save preprocessed markdown
-		err = preprocessDoc(data, p, markdownPath)
+		err := preprocessDoc(data, p, markdownPath)
 		if err != nil {
 			return errors.Wrap(err, "unable to preprocess")
 		}
@@ -61,6 +55,13 @@ func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, data *rende
 		if err != nil {
 			return err
 		}
+
+		rel, err := filepath.Rel(config.ProjectRoot(), p.FullPath)
+		if err != nil {
+			rel = p.FullPath
+		}
+		fmt.Printf("%s -> %s\n", rel, outputFilename)
+
 		return nil
 
 	}(doc)
