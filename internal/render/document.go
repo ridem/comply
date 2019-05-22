@@ -19,7 +19,7 @@ import (
 )
 
 // TODO: refactor and eliminate duplication among narrative, policy renderers
-func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, errOutputCh chan error, data *renderData, doc *model.Document, live bool) {
+func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, data *renderData, doc *model.Document, live bool) {
 	// only files that have been touched
 	if !isNewer(doc.FullPath, doc.ModifiedAt) {
 		return
@@ -27,7 +27,7 @@ func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, errOutputCh
 	recordModified(doc.FullPath, doc.ModifiedAt)
 
 	wg.Add(1)
-	go func(p *model.Document) {
+	go func(p *model.Document) error {
 		defer wg.Done()
 
 		semaphore <- struct{}{} // Lock
@@ -48,18 +48,20 @@ func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, errOutputCh
 		// save preprocessed markdown
 		err = preprocessDoc(data, p, markdownPath)
 		if err != nil {
-			errOutputCh <- errors.Wrap(err, "unable to preprocess")
-			return
+			return errors.Wrap(err, "unable to preprocess")
 		}
 
-		pandoc(outputFilename, errOutputCh)
+		err = pandoc(outputFilename)
+		if err != nil {
+			return errors.Wrap(err, "unable to run pandoc")
+		}
 
 		// remove preprocessed markdown
 		err = os.Remove(markdownPath)
 		if err != nil {
-			errOutputCh <- err
-			return
+			return err
 		}
+		return nil
 
 	}(doc)
 }

@@ -16,30 +16,24 @@ import (
 
 var pandocArgs = []string{"-f", "markdown+smart", "--toc", "-N", "--fail-if-warnings", "--pdf-engine=lualatex", "--template", "templates/default.latex", "-o"}
 
-func pandoc(outputFilename string, errOutputCh chan error) {
+func pandoc(outputFilename string) error {
 	if config.WhichPandoc() == config.UsePandoc {
-		err := pandocPandoc(outputFilename)
-		if err != nil {
-			errOutputCh <- err
-		}
-	} else {
-		dockerPandoc(outputFilename, errOutputCh)
+		return pandocPandoc(outputFilename)
 	}
+	return dockerPandoc(outputFilename)
 }
 
-func dockerPandoc(outputFilename string, errOutputCh chan error) {
+func dockerPandoc(outputFilename string) error {
 	pandocCmd := append(pandocArgs, fmt.Sprintf("/source/output/%s", outputFilename), fmt.Sprintf("/source/output/%s.md", outputFilename))
 	ctx := context.Background()
 	cli, err := client.NewEnvClient()
 	if err != nil {
-		errOutputCh <- errors.Wrap(err, "unable to read Docker environment")
-		return
+		return errors.Wrap(err, "unable to read Docker environment")
 	}
 
 	pwd, err := os.Getwd()
 	if err != nil {
-		errOutputCh <- errors.Wrap(err, "unable to get workding directory")
-		return
+		return errors.Wrap(err, "unable to get workding directory")
 	}
 
 	hc := &container.HostConfig{
@@ -52,41 +46,37 @@ func dockerPandoc(outputFilename string, errOutputCh chan error) {
 		hc, nil, "")
 
 	if err != nil {
-		errOutputCh <- errors.Wrap(err, "unable to create Docker container")
-		return
+		return errors.Wrap(err, "unable to create Docker container")
 	}
 
-	defer func() {
+	defer func() error {
 		timeout := 2 * time.Second
 		cli.ContainerStop(ctx, resp.ID, &timeout)
 		err := cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{Force: true})
 		if err != nil {
-			errOutputCh <- errors.Wrap(err, "unable to remove container")
-			return
+			return errors.Wrap(err, "unable to remove container")
 		}
+		return nil
 	}()
 
 	if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
-		errOutputCh <- errors.Wrap(err, "unable to start Docker container")
-		return
+		return errors.Wrap(err, "unable to start Docker container")
 	}
 
 	_, err = cli.ContainerWait(ctx, resp.ID)
 	if err != nil {
-		errOutputCh <- errors.Wrap(err, "error awaiting Docker container")
-		return
+		return errors.Wrap(err, "error awaiting Docker container")
 	}
 
 	_, err = cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true})
 	if err != nil {
-		errOutputCh <- errors.Wrap(err, "error reading Docker container logs")
-		return
+		return errors.Wrap(err, "error reading Docker container logs")
 	}
 
 	if _, err = os.Stat(fmt.Sprintf("output/%s", outputFilename)); err != nil && os.IsNotExist(err) {
-		errOutputCh <- errors.Wrap(err, "output not generated; verify your Docker image is up to date")
-		return
+		return errors.Wrap(err, "output not generated; verify your Docker image is up to date")
 	}
+	return nil
 }
 
 // 🐼
