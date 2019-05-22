@@ -9,7 +9,7 @@ import (
 
 func pdf(output string, live bool, errCh chan error, wg *sync.WaitGroup) {
 	var pdfWG sync.WaitGroup
-	semaphore := make(chan struct{}, 10)
+	semaphore := make(chan struct{}, 20)
 
 	for {
 		_, data, err := loadWithStats()
