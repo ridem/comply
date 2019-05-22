@@ -19,7 +19,7 @@ import (
 )
 
 // TODO: refactor and eliminate duplication among narrative, policy renderers
-func renderToFilesystem(wg *sync.WaitGroup, errOutputCh chan error, data *renderData, doc *model.Document, live bool) {
+func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, errOutputCh chan error, data *renderData, doc *model.Document, live bool) {
 	// only files that have been touched
 	if !isNewer(doc.FullPath, doc.ModifiedAt) {
 		return
@@ -30,9 +30,23 @@ func renderToFilesystem(wg *sync.WaitGroup, errOutputCh chan error, data *render
 	go func(p *model.Document) {
 		defer wg.Done()
 
+		semaphore <- struct{}{} // Lock
+		defer func() {
+			<-semaphore // Unlock
+		}()
+
 		outputFilename := p.OutputFilename
+
+		rel, err := filepath.Rel(config.ProjectRoot(), p.FullPath)
+		if err != nil {
+			rel = p.FullPath
+		}
+		fmt.Printf("%s -> %s\n", rel, filepath.Join("output", outputFilename))
+
+		markdownPath := filepath.Join(".", "output", outputFilename+".md")
+
 		// save preprocessed markdown
-		err := preprocessDoc(data, p, filepath.Join(".", "output", outputFilename+".md"))
+		err = preprocessDoc(data, p, markdownPath)
 		if err != nil {
 			errOutputCh <- errors.Wrap(err, "unable to preprocess")
 			return
@@ -41,17 +55,12 @@ func renderToFilesystem(wg *sync.WaitGroup, errOutputCh chan error, data *render
 		pandoc(outputFilename, errOutputCh)
 
 		// remove preprocessed markdown
-		err = os.Remove(filepath.Join(".", "output", outputFilename+".md"))
+		err = os.Remove(markdownPath)
 		if err != nil {
 			errOutputCh <- err
 			return
 		}
 
-		rel, err := filepath.Rel(config.ProjectRoot(), p.FullPath)
-		if err != nil {
-			rel = p.FullPath
-		}
-		fmt.Printf("%s -> %s\n", rel, filepath.Join("output", p.OutputFilename))
 	}(doc)
 }
 

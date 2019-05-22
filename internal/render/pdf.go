@@ -1,7 +1,6 @@
 package render
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -10,7 +9,7 @@ import (
 
 func pdf(output string, live bool, errCh chan error, wg *sync.WaitGroup) {
 	var pdfWG sync.WaitGroup
-
+	semaphore := make(chan struct{}, 5)
 	errOutputCh := make(chan error)
 
 	for {
@@ -26,13 +25,7 @@ func pdf(output string, live bool, errCh chan error, wg *sync.WaitGroup) {
 			return
 		}
 		for _, policy := range policies {
-			renderToFilesystem(&pdfWG, errOutputCh, data, policy, live)
-			fileError := <-errOutputCh
-			if fileError != nil {
-				fmt.Println(fileError)
-				wg.Done()
-				return
-			}
+			renderToFilesystem(&pdfWG, semaphore, errOutputCh, data, policy, live)
 		}
 
 		narratives, err := model.ReadNarratives()
@@ -42,13 +35,12 @@ func pdf(output string, live bool, errCh chan error, wg *sync.WaitGroup) {
 		}
 
 		for _, narrative := range narratives {
-			renderToFilesystem(&pdfWG, errOutputCh, data, narrative, live)
-			fileError := <-errOutputCh
-			if fileError != nil {
-				fmt.Println(fileError)
-				wg.Done()
-				return
-			}
+			renderToFilesystem(&pdfWG, semaphore, errOutputCh, data, narrative, live)
+		}
+
+		if <-errOutputCh != nil {
+			wg.Done()
+			return
 		}
 
 		pdfWG.Wait()
