@@ -158,8 +158,6 @@ head-content: "%s"
 foot-content: "%s confidential %d"
 ---
 
-\null\vspace*{\fill}
-
 %s
 
 %s
