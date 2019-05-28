@@ -130,7 +130,7 @@ func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error
 		for standard, keys := range pol.Satisfies {
 			rows += fmt.Sprintf("| %s | %s |\n", standard, strings.Join(keys, ", "))
 		}
-		satisfiesTable = fmt.Sprintf("|Standard|Controls Satisfied|\n|-------+--------------------------------------------|\n%s\nTable: Control satisfaction\n", rows)
+		satisfiesTable = fmt.Sprintf("|Standard|Criteria Satisfied|\n|-------+--------------------------------------------|\n%s\nTable: Criteria satisfaction\n", rows)
 	}
 
 	gitApprovalInfo, err := getGitApprovalInfo(pol)
@@ -158,11 +158,17 @@ head-content: "%s"
 foot-content: "%s confidential %d"
 ---
 
-%s
+\null\vspace*{\fill}
 
 %s
 
-\newpage
+%s
+
+\clearpage
+
+\tableofcontents
+
+\clearpage
 %s`,
 		pol.Name,
 		cfg.Name,
