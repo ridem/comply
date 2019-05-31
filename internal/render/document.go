@@ -133,7 +133,6 @@ func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error
 		satisfiesTable = fmt.Sprintf("|Standard|Criteria Satisfied|\n|-------+--------------------------------------------|\n%s\nTable: Criteria satisfaction\n", rows)
 	}
 
-	gitApprovalInfo, err := getGitApprovalInfo(pol)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -144,7 +143,6 @@ func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error
 		for _, rev := range pol.Revisions {
 			rows += fmt.Sprintf("| %s | %s |\n", rev.Date, rev.Comment)
 		}
-		rows += fmt.Sprintf("| %s | Last minor modification |\n", gitApprovalInfo)
 		revisionTable = fmt.Sprintf("|Date|Comment|\n|---+--------------------------------------------|\n%s\nTable: Document history\n", rows)
 	}
 
