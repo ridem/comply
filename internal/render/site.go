@@ -94,10 +94,7 @@ func Build(output string, live bool) error {
 		watch(errCh)
 
 		go func() {
-			http.Handle("/admin/", http.StripPrefix(strings.TrimRight("/admin/", "/"), http.FileServer(http.Dir(filepath.Join(".", "static", "admin")))))
-			http.Handle("/convert/", http.StripPrefix(strings.TrimRight("/convert/", "/"), http.FileServer(http.Dir(filepath.Join(".", "static", "convert")))))
-			http.Handle("/logo.svg", http.FileServer(http.Dir(filepath.Join(".", "static"))))
-			http.Handle("/login.html", http.FileServer(http.Dir(filepath.Join(".", "static"))))
+			http.Handle("/static/", http.StripPrefix(strings.TrimRight("/static/", "/"), http.FileServer(http.Dir(filepath.Join(".", "static")))))
 			http.Handle("/", http.FileServer(http.Dir(filepath.Join(".", "output"))))
 			err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", ServePort), nil)
 			if err != nil {
