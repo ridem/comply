@@ -159,17 +159,12 @@ func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error
 header-includes: yes
 head-content: "%s"
 foot-content: "%s confidential %d"
+lof: True
+include-before:
+  - %q
+  - %q
 ---
 
-%s
-
-%s
-
-\clearpage
-
-\tableofcontents
-
-\clearpage
 %s`,
 		pol.Name,
 		cfg.Name,
