@@ -135,7 +135,7 @@ func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error
 		for standard, keys := range pol.Satisfies {
 			rows += fmt.Sprintf("| %s | %s |\n", standard, strings.Join(keys, ", "))
 		}
-		satisfiesTable = fmt.Sprintf("|Standard|Criteria Satisfied|\n|-------+--------------------------------------------|\n%s\nTable: Criteria satisfaction\n", rows)
+		satisfiesTable = fmt.Sprintf("|Standard|Criteria Satisfied|\n|-------+--------------------------------------------|\n%sCriteria satisfaction\n\n", rows)
 	}
 
 	if err != nil {
@@ -148,7 +148,7 @@ func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error
 		for _, rev := range pol.Revisions {
 			rows += fmt.Sprintf("| %s | %s |\n", rev.Date, rev.Comment)
 		}
-		revisionTable = fmt.Sprintf("|Date|Comment|\n|---+--------------------------------------------|\n%s\nTable: Document history\n", rows)
+		revisionTable = fmt.Sprintf("\n|Date|Comment|\n|---+--------------------------------------------|\n%sDocument history\n\n", rows)
 	}
 
 	doc := fmt.Sprintf(`%% %s
