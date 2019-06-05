@@ -36,6 +36,7 @@ type Project struct {
 	Name           string                 `yaml:"name"`
 	Pandoc         string                 `yaml:"pandoc,omitempty"`
 	FilePrefix     string                 `yaml:"filePrefix"`
+	PDFFolder      string                 `yaml:"pdfFolder,omitempty"`
 	Tickets        map[string]interface{} `yaml:"tickets"`
 	ApprovedBranch string                 `yaml:"approvedBranch"`
 }

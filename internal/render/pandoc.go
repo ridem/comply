@@ -14,7 +14,7 @@ import (
 	"github.com/strongdm/comply/internal/config"
 )
 
-var pandocArgs = []string{"-f", "markdown+smart", "--toc", "-N", "--fail-if-warnings", "--template", "templates/default.latex", "-o"}
+var pandocArgs = []string{"-f", "markdown+smart", "--toc", "-N", "--fail-if-warnings", "--resource-path", ".:static", "--template", "templates/default.latex", "-o"}
 
 func pandoc(outputFilename string) error {
 	if config.WhichPandoc() == config.UsePandoc {

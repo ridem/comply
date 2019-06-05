@@ -2,15 +2,15 @@ package render
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
+	"github.com/strongdm/comply/internal/config"
 	"github.com/yosssi/ace"
 )
 
@@ -74,6 +74,25 @@ func isNewer(path string, t time.Time) bool {
 	return t.After(previous)
 }
 
+func listFolders(root string) ([]string, error) {
+	var folders []string
+	dirInfo, err := ioutil.ReadDir(root)
+	if err != nil {
+		return folders, err
+	}
+
+	for _, entry := range dirInfo {
+		if entry.IsDir() {
+			folders = append(folders, entry.Name())
+		}
+	}
+	return folders, nil
+}
+
+func serveStaticFolder(folderName string) {
+	http.Handle("/"+folderName+"/", http.FileServer(http.Dir("./static")))
+}
+
 // Build generates all PDF and HTML output to the target directory with optional live reload.
 func Build(output string, live bool) error {
 	err := os.RemoveAll(output)
@@ -81,7 +100,7 @@ func Build(output string, live bool) error {
 		errors.Wrap(err, "unable to remove files from output directory")
 	}
 
-	err = os.MkdirAll(output, os.FileMode(0755))
+	err = os.MkdirAll(output+"/"+config.Config().PDFFolder, os.FileMode(0755))
 	if err != nil {
 		errors.Wrap(err, "unable to create output directory")
 	}
@@ -93,9 +112,16 @@ func Build(output string, live bool) error {
 	if live {
 		watch(errCh)
 
+		staticFolders, err := listFolders("./static")
+		if err != nil {
+			errors.Wrap(err, "unable to list subfolders in static")
+		}
+
 		go func() {
-			http.Handle("/static/", http.StripPrefix(strings.TrimRight("/static/", "/"), http.FileServer(http.Dir(filepath.Join(".", "static")))))
-			http.Handle("/", http.FileServer(http.Dir(filepath.Join(".", "output"))))
+			for _, folderName := range staticFolders {
+				serveStaticFolder(folderName)
+			}
+			http.Handle("/", http.FileServer(http.Dir("./output")))
 			err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", ServePort), nil)
 			if err != nil {
 				panic(err)

@@ -35,9 +35,14 @@ func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, data *rende
 			<-semaphore // Unlock
 		}()
 
-		outputFilename := p.OutputFilename
+		pdfFolder := config.Config().PDFFolder
 
-		markdownPath := filepath.Join(".", "output", outputFilename+".md")
+		pdfRelativePath := p.OutputFilename
+		if pdfFolder != "" {
+			pdfRelativePath = pdfFolder + "/" + p.OutputFilename
+		}
+
+		markdownPath := filepath.Join(".", "output", pdfRelativePath+".md")
 
 		// save preprocessed markdown
 		err := preprocessDoc(data, p, markdownPath)
@@ -45,7 +50,7 @@ func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, data *rende
 			return errors.Wrap(err, "unable to preprocess")
 		}
 
-		err = pandoc(outputFilename)
+		err = pandoc(pdfRelativePath)
 		if err != nil {
 			return errors.Wrap(err, "unable to run pandoc")
 		}
@@ -60,7 +65,7 @@ func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, data *rende
 		if err != nil {
 			rel = p.FullPath
 		}
-		fmt.Printf("%s -> %s\n", rel, outputFilename)
+		fmt.Printf("%s -> %s\n", rel, pdfRelativePath)
 
 		return nil
 
