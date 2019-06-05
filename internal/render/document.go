@@ -160,6 +160,7 @@ header-includes: yes
 head-content: "%s"
 foot-content: "%s confidential %d"
 lof: True
+tables: True
 include-before:
   - %q
   - %q
