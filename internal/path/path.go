@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/strongdm/comply/internal/config"
 )
 
 // File wraps an os.FileInfo as well as the absolute path to the underlying file.
@@ -17,22 +18,30 @@ type File struct {
 
 // Standards lists all standard files.
 func Standards() ([]File, error) {
-	return filesFor("standards", "yml")
+	return loadFolder("standards", "yml")
 }
 
 // Narratives lists all narrative files.
 func Narratives() ([]File, error) {
-	return filesFor("narratives", "md")
+	return loadFolder("narratives", "md")
 }
 
 // Policies lists all policy files.
 func Policies() ([]File, error) {
-	return filesFor("policies", "md")
+	return loadFolder("policies", "md")
 }
 
 // Procedures lists all procedure files.
 func Procedures() ([]File, error) {
-	return filesFor("procedures", "md")
+	return loadFolder("procedures", "md")
+}
+
+func loadFolder(defaultFolder string, format string) ([]File, error) {
+	customFolder, isPresent := config.Config().CustomFolders[defaultFolder]
+	if isPresent {
+		return filesFor(customFolder, format)
+	}
+	return filesFor(defaultFolder, format)
 }
 
 func filesFor(name, extension string) ([]File, error) {

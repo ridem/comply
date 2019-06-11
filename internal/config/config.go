@@ -39,6 +39,7 @@ type Project struct {
 	PDFFolder      string                 `yaml:"pdfFolder,omitempty"`
 	Tickets        map[string]interface{} `yaml:"tickets"`
 	ApprovedBranch string                 `yaml:"approvedBranch"`
+	CustomFolders  map[string]string      `yaml:"customFolders,omitempty"`
 }
 
 // SetPandoc records pandoc availability during initialization
