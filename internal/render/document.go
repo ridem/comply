@@ -47,12 +47,14 @@ func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, data *rende
 		// save preprocessed markdown
 		err := preprocessDoc(data, p, markdownPath)
 		if err != nil {
-			return errors.Wrap(err, "unable to preprocess")
+			fmt.Printf("Unable to preprocess %s (%s) - %v\n", p.Name, p.Acronym, err)
+			return err
 		}
 
 		err = pandoc(pdfRelativePath)
 		if err != nil {
-			return errors.Wrap(err, "unable to run pandoc")
+			fmt.Printf("Unable to generate a PDF for %s (%s) - %v\n", p.Name, p.Acronym, err)
+			return err
 		}
 
 		// remove preprocessed markdown
