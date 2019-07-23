@@ -51,7 +51,7 @@ func getMetadata(pol *model.Document) DocumentMetadata {
 		Author:        cfg.Name,
 		IncludeHeader: true,
 		HeadContent:   pol.Name,
-		FootContent:   fmt.Sprintf("%s confidential %d", pol.Name, time.Now().Year()),
+		FootContent:   fmt.Sprintf("%s confidential %d", cfg.Name, time.Now().Year()),
 		Date:          fmt.Sprintf("%s %d", pol.ModifiedAt.Month().String(), pol.ModifiedAt.Year()),
 	}
 	includeBefore := []string{}
