@@ -8,6 +8,7 @@ type Document struct {
 
 	Revisions      []Revision   `yaml:"majorRevisions"`
 	Satisfies      Satisfaction `yaml:"satisfies"`
+	Owner       string       `yaml:"documentOwner"`
 	FullPath       string
 	OutputFilename string
 	ModifiedAt     time.Time

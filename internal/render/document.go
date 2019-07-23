@@ -16,7 +16,72 @@ import (
 	"github.com/pkg/errors"
 	"github.com/strongdm/comply/internal/config"
 	"github.com/strongdm/comply/internal/model"
+	"gopkg.in/yaml.v2"
 )
+
+type DocumentMetadata struct {
+	Title         string   `yaml:"title"`
+	Author        string   `yaml:"author"`
+	Date          string   `yaml:"date"`
+	IncludeHeader bool     `yaml:"header-includes"`
+	HeadContent   string   `yaml:"head-content"`
+	FootContent   string   `yaml:"foot-content"`
+	ListOfFigures bool     `yaml:"lof"`
+	Tables        bool     `yaml:"tables"`
+	IncludeBefore []string `yaml:"include-before"`
+}
+
+func createTable(name string, header []string, rows [][]string) string {
+	stringRows := ""
+	for _, row := range rows {
+		stringRows += fmt.Sprintf("%s|%s\n", row[0], row[1])
+	}
+	return fmt.Sprintf(`%s
+  ---|:-----
+  %s
+  : %s
+  
+  `, strings.Join(header, "|"), stringRows, name)
+}
+
+func getMetadata(pol *model.Document) DocumentMetadata {
+	cfg := config.Config()
+	metadata := DocumentMetadata{
+		Title:         pol.Name,
+		Author:        cfg.Name,
+		IncludeHeader: true,
+		HeadContent:   pol.Name,
+		FootContent:   fmt.Sprintf("%s confidential %d", pol.Name, time.Now().Year()),
+		Date:          fmt.Sprintf("%s %d", pol.ModifiedAt.Month().String(), pol.ModifiedAt.Year()),
+	}
+	includeBefore := []string{}
+
+	if len(pol.Satisfies) > 0 {
+		var rows []([]string)
+		for standard, keys := range pol.Satisfies {
+			rows = append(rows, []string{standard, strings.Join(keys, ", ")})
+		}
+		satisfiesTable := createTable("Criteria satisfaction", []string{"Standard", "Criteria Satisfied"}, rows)
+		includeBefore = append(includeBefore, satisfiesTable)
+	}
+
+	if len(pol.Revisions) > 0 {
+		var rows []([]string)
+		for _, rev := range pol.Revisions {
+			rows = append(rows, []string{rev.Date, rev.Comment})
+		}
+		revisionTable := createTable("Document history", []string{"Date", "Comment"}, rows)
+		includeBefore = append(includeBefore, revisionTable)
+	}
+
+	if len(pol.Owner) > 0 {
+		documentOwner := fmt.Sprintf("Policy Owner: %s\n\n", pol.Owner)
+		includeBefore = append(includeBefore, documentOwner)
+	}
+
+	metadata.IncludeBefore = includeBefore
+	return metadata
+}
 
 // TODO: refactor and eliminate duplication among narrative, policy renderers
 func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, data *renderData, doc *model.Document, live bool) {
@@ -113,8 +178,6 @@ func getGitApprovalInfo(pol *model.Document) (string, error) {
 }
 
 func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error {
-	cfg := config.Config()
-
 	var w bytes.Buffer
 	bodyTemplate, err := template.New("body").Parse(pol.Body)
 	if err != nil {
@@ -124,59 +187,14 @@ func preprocessDoc(data *renderData, pol *model.Document, fullPath string) error
 	}
 	body := w.String()
 
-	revisionTable := ""
-	satisfiesTable := ""
+	metadata := getMetadata(pol)
 
-	// ||Date|Comment|
-	// |---+------|
-	// | 4 Jan 2018 | Initial Version |
-	// Table: Document history
+	ymlData, _ := yaml.Marshal(&metadata)
 
-	if len(pol.Satisfies) > 0 {
-		rows := ""
-		for standard, keys := range pol.Satisfies {
-			rows += fmt.Sprintf("| %s | %s |\n", standard, strings.Join(keys, ", "))
-		}
-		satisfiesTable = fmt.Sprintf("Criteria satisfaction\n\n|Standard|Criteria Satisfied|\n|-------+--------------------------------------------|\n%s\n\n", rows)
-	}
+	frontmatter := fmt.Sprintf("---\n%s\n---", ymlData)
 
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	if len(pol.Revisions) > 0 {
-		rows := ""
-		for _, rev := range pol.Revisions {
-			rows += fmt.Sprintf("| %s | %s |\n", rev.Date, rev.Comment)
-		}
-		revisionTable = fmt.Sprintf("Document history\n\n|Date|Comment|\n|---+--------------------------------------------|\n%s\n\n", rows)
-	}
-
-	doc := fmt.Sprintf(`%% %s
-%% %s
-%% %s
-
----
-header-includes: yes
-head-content: "%s"
-foot-content: "%s confidential %d"
-lof: True
-tables: True
-include-before:
-  - %q
-  - %q
----
-
-%s`,
-		pol.Name,
-		cfg.Name,
-		fmt.Sprintf("%s %d", pol.ModifiedAt.Month().String(), pol.ModifiedAt.Year()),
-		pol.Name,
-		cfg.Name,
-		time.Now().Year(),
-		satisfiesTable,
-		revisionTable,
+	doc := fmt.Sprintf("%s\n%s",
+		frontmatter,
 		body,
 	)
 	err = ioutil.WriteFile(fullPath, []byte(doc), os.FileMode(0644))
