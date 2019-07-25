@@ -118,7 +118,6 @@ func renderToFilesystem(wg *sync.WaitGroup, semaphore chan struct{}, data *rende
 
 		err = pandoc(pdfRelativePath)
 		if err != nil {
-			fmt.Printf("Unable to generate a PDF for %s (%s) - %v\n", p.Name, p.Acronym, err)
 			fmt.Fprintf(os.Stderr, "Unable to generate a PDF for %s (%s) - %v\n", p.Name, p.Acronym, err)
 			return err
 		}
